@@ -21,20 +21,15 @@ const isProd = process.env.NODE_ENV === 'production';
 
 app.use(
 	cors({
-		origin: function (origin, callback) {
-			// Allow server-to-server & tools like Postman
-			if (!origin) return callback(null, true);
-
-			if (origin === CLIENT_URL || origin === 'http://localhost:3000') {
-				return callback(null, true);
-			}
-
-			return callback(new Error('Not allowed by CORS'));
-		},
+		origin: process.env.CLIENT_URL,
 		credentials: true,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
 	})
 );
 
+// Explicit preflight support
+app.options('*', cors());
 app.use(express.json());
 app.use(cookieParser());
 
