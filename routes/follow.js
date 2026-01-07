@@ -9,19 +9,11 @@ router.get('/search/users', async (req, res) => {
 	try {
 		const q = (req.query.q || '').toString().trim();
 
-		console.log('QUERY:', q);
-
 		const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 
-		//  TEST 1 – UTAN FILTER
 		const users = await User.find({
 			username: { $regex: regex },
 		}).select('username');
-
-		console.log(
-			'MATCHING USERS:',
-			users.map((u) => u.username)
-		);
 
 		res.json(users.map((u) => ({ _id: u._id, username: u.username })));
 	} catch (err) {

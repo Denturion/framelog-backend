@@ -22,6 +22,8 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
 	try {
 		const userId = req.user.userId;
+		console.log('\n=== POST /movies DEBUG ===');
+		console.log('req.user.userId:', userId);
 
 		const { movie_id, title, year, poster_url } = req.body;
 
@@ -34,6 +36,13 @@ router.post('/', async (req, res) => {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
+		console.log('BEFORE push - user.movies:');
+		user.movies.forEach((m, idx) => {
+			console.log(
+				`  [${idx}] _id: ${m._id}, _id type: ${m._id?.constructor.name}, title: ${m.title}`
+			);
+		});
+
 		user.movies.push({
 			movie_id,
 			title,
@@ -45,6 +54,14 @@ router.post('/', async (req, res) => {
 		});
 
 		await user.save();
+
+		console.log('AFTER save - user.movies:');
+		user.movies.forEach((m, idx) => {
+			console.log(
+				`  [${idx}] _id: ${m._id}, _id type: ${m._id?.constructor.name}, title: ${m.title}`
+			);
+		});
+		console.log('=== END POST DEBUG ===\n');
 
 		res.json(user.movies);
 	} catch (err) {
@@ -60,12 +77,27 @@ router.put('/:id', async (req, res) => {
 		const { id } = req.params;
 		const { rating, note } = req.body;
 
+		console.log('\n=== PUT /movies/:id DEBUG ===');
+		console.log('req.user.userId:', userId);
+		console.log('req.params.id:', id);
+		console.log('req.params.id type:', typeof id);
+
 		const user = await User.findById(userId);
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
-		const movie = user.movies.id(id);
+		console.log('user.movies list:');
+		user.movies.forEach((m, idx) => {
+			console.log(
+				`  [${idx}] _id: ${m._id}, _id type: ${
+					m._id?.constructor.name
+				}, toString: ${m._id?.toString()}, title: ${m.title}`
+			);
+		});
+
+		const movie = user.movies.find((m) => m._id.toString() === id);
+		console.log('Found movie:', movie ? `Yes - ${movie.title}` : 'No');
 
 		if (!movie) {
 			return res.status(404).json({ message: 'Movie not found' });
@@ -73,9 +105,11 @@ router.put('/:id', async (req, res) => {
 
 		if (rating !== undefined) movie.rating = rating;
 		if (note !== undefined) movie.note = note;
-		await user.save();
 
-		res.json(user.movies);
+		await user.save();
+		console.log('=== END PUT DEBUG ===\n');
+
+		res.json(movie);
 	} catch (err) {
 		console.error('PUT /movies error', err);
 		res.status(500).json({ message: 'Server error' });
@@ -88,17 +122,29 @@ router.delete('/:id', async (req, res) => {
 		const userId = req.user.userId;
 		const { id } = req.params;
 
+		console.log('\n=== DELETE /movies/:id DEBUG ===');
+		console.log('req.user.userId:', userId);
+		console.log('req.params.id:', id);
+		console.log('req.params.id type:', typeof id);
+
 		const user = await User.findById(userId);
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
 		}
-		console.log('movies type:', Array.isArray(user.movies));
-		console.log('movies constructor:', user.movies.constructor.name);
 
-		user.movies.pull({ _id: id }); // ✅ RÄTT
+		console.log('user.movies list:');
+		user.movies.forEach((m, idx) => {
+			console.log(
+				`  [${idx}] _id: ${m._id}, _id type: ${
+					m._id?.constructor.name
+				}, toString: ${m._id?.toString()}, title: ${m.title}`
+			);
+		});
+
+		user.movies.pull({ _id: id });
 		await user.save();
-		console.log('movies type:', Array.isArray(user.movies));
-		console.log('movies constructor:', user.movies.constructor.name);
+		console.log('Movie removed successfully');
+		console.log('=== END DELETE DEBUG ===\n');
 
 		res.status(204).send();
 	} catch (err) {
