@@ -92,16 +92,15 @@ router.delete('/:id', async (req, res) => {
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
 		}
+		console.log('movies type:', Array.isArray(user.movies));
+		console.log('movies constructor:', user.movies.constructor.name);
 
-		const movie = user.movies.id(id);
-		if (!movie) {
-			return res.status(404).json({ message: 'Movie not found' });
-		}
-
-		movie.deleteOne(); // 👈 tar bort exakt EN post
+		user.movies.pull({ _id: id }); // ✅ RÄTT
 		await user.save();
+		console.log('movies type:', Array.isArray(user.movies));
+		console.log('movies constructor:', user.movies.constructor.name);
 
-		res.json(user.movies);
+		res.status(204).send();
 	} catch (err) {
 		console.error('DELETE /movies error', err);
 		res.status(500).json({ message: 'Server error' });
