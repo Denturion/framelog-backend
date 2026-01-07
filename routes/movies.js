@@ -54,10 +54,10 @@ router.post('/', async (req, res) => {
 });
 
 //EDIT MOVIE RATING AND PERSONAL NOTE
-router.put('/:movie_id', async (req, res) => {
+router.put('/:id', async (req, res) => {
 	try {
 		const userId = req.user.userId;
-		const { movie_id } = req.params;
+		const { id } = req.params;
 		const { rating, note } = req.body;
 
 		const user = await User.findById(userId);
@@ -65,7 +65,7 @@ router.put('/:movie_id', async (req, res) => {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
-		const movie = user.movies.find((m) => m.movie_id === movie_id);
+		const movie = user.movies.id(id);
 
 		if (!movie) {
 			return res.status(404).json({ message: 'Movie not found' });
@@ -83,23 +83,22 @@ router.put('/:movie_id', async (req, res) => {
 });
 
 //REMOVE MOVIE FROM LIST
-router.delete('/:movie_id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
 	try {
 		const userId = req.user.userId;
-		const { movie_id } = req.params;
+		const { id } = req.params;
 
 		const user = await User.findById(userId);
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' });
 		}
 
-		const exists = user.movies.some((m) => m.movie_id === movie_id);
-
-		if (!exists) {
+		const movie = user.movies.id(id);
+		if (!movie) {
 			return res.status(404).json({ message: 'Movie not found' });
 		}
 
-		user.movies = user.movies.filter((m) => m.movie_id !== movie_id);
+		movie.deleteOne(); // 👈 tar bort exakt EN post
 		await user.save();
 
 		res.json(user.movies);
