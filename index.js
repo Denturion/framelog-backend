@@ -19,6 +19,12 @@ const isProd = process.env.NODE_ENV === 'production';
    MIDDLEWARE
 ========================= */
 
+// Log incoming requests for debugging
+app.use((req, res, next) => {
+	console.log(`${req.method} ${req.path} - Origin: ${req.get('origin')}`);
+	next();
+});
+
 app.use(
 	cors({
 		origin: process.env.CLIENT_URL,
